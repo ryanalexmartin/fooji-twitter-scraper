@@ -2,8 +2,16 @@ import csv
 import os
 import datetime
 import argparse
+import pandas as pd
 
 from utils import init_driver, get_last_date_from_csv, log_search_page, keep_scrolling
+
+def write_header_to_csv(path, write_mode):
+    header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
+                  'Image link', 'Tweet URL', 'Hashtags', 'Fooji link']
+    with open(path, write_mode, newline='', encoding='utf-8') as f: 
+        writer = csv.writer(f)
+        writer.writerow(header)
 
 def scrape(words=None, to_account=None, from_account=None, interval=5, navig="chrome", lang="en",
           headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None):
@@ -13,32 +21,25 @@ def scrape(words=None, to_account=None, from_account=None, interval=5, navig="ch
 
     tweet_ids = set()
     save_dir = "outputs"
-    write_mode = 'r+'
+    write_mode = 'a'
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
 
+
+
     path = save_dir + "/output.csv" #Because we are checking against the existing .csv file to see if a fooji tweet has been shared, it's better to keep only one CSV file.
 
-    # start_date = datetime.date.today() - datetime.timedelta(1) #search from yesterday (TODO: might be more efficient to search from last hour)
-    # max_date = datetime.date.today()
-
-    # if resume:
-    #     start_date = str(get_last_date_from_csv(path))[:10]
-    #     write_mode = 'a'
-    # end_date = start_date + datetime.timedelta(days=interval)
+    #write_header_to_csv(path, write_mode) #uncomment to write header (first line of .csv should be the header... TODO:  Make this not shitty)
 
     num_logged_pages = 0
 
 
     with open(path, write_mode, newline='', encoding='utf-8') as f: 
-        header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
-                  'Image link', 'Tweet URL', 'Hashtags']
-        writer = csv.writer(f)
-        if write_mode == 'r+':
-            writer.writerow(header)
         while num_logged_pages <= limit:
             scrolls = 0
+            writer = csv.writer(f)
+
 
             log_search_page(driver=driver, words=words,
                                 # start_date=datetime.datetime.strftime(start_date, '%Y-%m-%d'),

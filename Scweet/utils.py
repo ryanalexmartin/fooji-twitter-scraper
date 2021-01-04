@@ -118,7 +118,7 @@ def get_tweet_data(card):
     except:
         responding = ""
 
-    text = comment + responding
+    text = comment + ' ' + responding
 
     try:
         reply_cnt = card.find_element_by_xpath('.//div[@data-testid="reply"]').text
@@ -177,7 +177,13 @@ def get_tweet_data(card):
     except:
         return
 
-    tweet = (username, handle, postdate, text, emojis, reply_cnt, retweet_cnt, like_cnt, image_link, tweet_url, hashtags_list)
+    try:
+        fooji_link = re.findall('((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|info){1}(?:\/[a-zA-Z0-9]{1,})*)', text)
+    except:
+        return
+
+
+    tweet = (username, handle, postdate, text, emojis, reply_cnt, retweet_cnt, like_cnt, image_link, tweet_url, hashtags_list, fooji_link)
     return tweet
 
 
@@ -297,6 +303,8 @@ def log_search_page(driver, lang, display_type, words, to_account, from_account,
 
 def get_last_date_from_csv(path):
     df = pd.read_csv(path)
+    df.columns= ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
+                  'Image link', 'Tweet URL', 'Hashtags', 'fooji_link']
     return datetime.datetime.strftime(max(pd.to_datetime(df["Timestamp"])), '%Y-%m-%dT%H:%M:%S.000Z')
 
 
@@ -320,20 +328,29 @@ def log_in(driver, timeout=10):
 def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position):
     """ scrolling function """
 
+    path = "outputs/output.csv"
+
+    #read csv file and add all rows to an array
+    df = pd.read_csv(path)
+
+
     while scrolling and tweet_parsed < limit:
         # get the card of tweets
         page_cards = driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
         for card in page_cards:
             tweet = get_tweet_data(card)
             if tweet:
+                # print(tweet)
                 # check if the tweet is unique by grabbing URL
-                tweet_id = ''.join(tweet[:-1 - 1])
+                tweet_id = ''.join(tweet[len(tweet) - 2])
                 if tweet_id not in tweet_ids:
                     tweet_ids.add(tweet_id)
                     data.append(tweet)
                     last_date = str(tweet[2])
                     print("Tweet made at: " + str(last_date) + " is found.")
-                    writer.writerows([tweet])
+                    if(tweet[:-1] not in df.values):
+                        ##TODO:  send to DISCORD right here!
+                        writer.writerows([tweet])
                     tweet_parsed += 1
                     if tweet_parsed >= limit:
                         break
