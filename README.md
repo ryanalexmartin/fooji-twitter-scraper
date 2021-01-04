@@ -67,5 +67,12 @@ optional arguments:
   --resume RESUME       Resume the last scraping work. You need to pass the same arguments (<words>, <start_date>, <max_date>...)```
 
 ### To execute the script : 
-python scweet.py --words "excellente//car" --to_account "tesla"  --max_date 2020-01-05 --start_date 2020-01-01 --limit 10 --interval 1 --navig chrome --display_type Latest --lang="en" --headless True
+
+##todo:  remove max date/min date limitations
+todo: autorun
+todo: discord web hook
+
+python scweet.py --words "fooji.info" --limit 5 --navig chrome --display_type Latest
+
+optional:  --headless True
 ```

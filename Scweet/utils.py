@@ -172,8 +172,18 @@ def get_tweet_data(card):
     except:
         return
 
-    tweet = (username, handle, postdate, text, emojis, reply_cnt, retweet_cnt, like_cnt, image_link, tweet_url)
+    try:
+        hashtags_list = re.findall(r"#(\w+)", text);
+    except:
+        return
+
+    tweet = (username, handle, postdate, text, emojis, reply_cnt, retweet_cnt, like_cnt, image_link, tweet_url, hashtags_list)
     return tweet
+
+
+    
+    # tweet = (username, handle, postdate, text, emojis, reply_cnt, retweet_cnt, like_cnt, image_link, tweet_url)
+    # return tweet
 
 
 def init_driver(navig="chrome", headless=True, proxy=None):
@@ -217,12 +227,13 @@ def init_driver(navig="chrome", headless=True, proxy=None):
         return driver
 
 
-def log_search_page(driver, start_date, end_date, lang, display_type, words, to_account, from_account):
+def log_search_page(driver, lang, display_type, words, to_account, from_account, hashtag):
     """ Search for this query between start_date and end_date"""
 
     # req='%20OR%20'.join(words)
     from_account = "(from%3A" + from_account + ")%20" if from_account is not None else ""
     to_account = "(to%3A" + to_account + ")%20" if to_account is not None else ""
+    hash_tags = "(%23"+hashtag+")%20" if hashtag is not None else ""
 
     if words is not None:
         words = str(words).split("//")
@@ -235,13 +246,13 @@ def log_search_page(driver, start_date, end_date, lang, display_type, words, to_
     else:
         lang = ""
 
-    end_date = "until%3A" + end_date + "%20"
-    start_date = "since%3A" + start_date + "%20"
+    # end_date = "until%3A" + end_date + "%20"
+    # start_date = "since%3A" + start_date + "%20"
 
     # to_from = str('%20'.join([from_account,to_account]))+"%20"
 
     driver.get(
-        'https://twitter.com/search?q=' + words + from_account + to_account + end_date + start_date + lang + '&src=typed_query')
+        'https://twitter.com/search?q=' + words + from_account + to_account + hash_tags + lang + '&src=typed_query')
 
     sleep(1)
 
@@ -250,6 +261,38 @@ def log_search_page(driver, start_date, end_date, lang, display_type, words, to_
         driver.find_element_by_link_text(display_type).click()
     except:
         print("Latest Button doesnt exist.")
+
+
+# def log_search_page(driver, lang, display_type, words, to_account, from_account):
+#     """ Search for this query between start_date and end_date"""
+
+#     # req='%20OR%20'.join(words)
+#     from_account = "(from%3A" + from_account + ")%20" if from_account is not None else ""
+#     to_account = "(to%3A" + to_account + ")%20" if to_account is not None else ""
+
+#     if words is not None:
+#         words = str(words).split("//")
+#         words = "(" + str('%20OR%20'.join(words)) + ")%20"
+#     else:
+#         words = ""
+
+#     if lang is not None:
+#         lang = 'lang%3A' + lang
+#     else:
+#         lang = ""
+
+#     # to_from = str('%20'.join([from_account,to_account]))+"%20"
+
+#     driver.get(
+#         'https://twitter.com/search?q=' + words + from_account + to_account + lang + '&src=typed_query')
+
+#     sleep(1)
+
+#     # navigate to historical 'Top' or 'Latest' tab
+#     try:
+#         driver.find_element_by_link_text(display_type).click()
+#     except:
+#         print("Latest Button doesnt exist.")
 
 
 def get_last_date_from_csv(path):
@@ -274,7 +317,7 @@ def log_in(driver, timeout=10):
 	password_el.send_keys(Keys.RETURN)
 
 
-def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position):
+def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position):
     """ scrolling function """
 
     while scrolling and tweet_parsed < limit:
@@ -283,8 +326,8 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
         for card in page_cards:
             tweet = get_tweet_data(card)
             if tweet:
-                # check if the tweet is unique
-                tweet_id = ''.join(tweet[:-1])
+                # check if the tweet is unique by grabbing URL
+                tweet_id = ''.join(tweet[:-1 - 1])
                 if tweet_id not in tweet_ids:
                     tweet_ids.add(tweet_id)
                     data.append(tweet)
@@ -318,7 +361,8 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
     return driver, data, writer, tweet_ids, scrolling, tweet_parsed, scroll, last_position
 
 
-def get_follow(user, headless, follow=None, verbose=1, wait=2):
+
+def get_follow(user, headless, follow=None, verbose=1, wait=10):
     driver = init_driver(headless=headless)
     sleep(wait)
     log_in(driver)
