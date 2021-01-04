@@ -91,7 +91,7 @@ def chrome_version():
     return version_strings.pop()
 
 """
-def get_data(card):
+def get_tweet_data(card):
     """Extract data from tweet card"""
     try:
         username = card.find_element_by_xpath('.//span').text
@@ -281,7 +281,7 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
         # get the card of tweets
         page_cards = driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
         for card in page_cards:
-            tweet = get_data(card)
+            tweet = get_tweet_data(card)
             if tweet:
                 # check if the tweet is unique
                 tweet_id = ''.join(tweet[:-1])
