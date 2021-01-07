@@ -1,4 +1,5 @@
-# A simple and unlimited twitter scraper with python and without authentification. 
+# A bot that scrapes twitter for Fooji links and posts them to Discord
+# by insom#4211
 
 In the last days, Twitter banned every twitter scrapers. This repository represent an alternative legal tool (depending on how many seconds we wait between each scrolling) to scrap tweets between two given dates (start_date and max_date), for a given language and list of words or account name, and saves a csv file containing scraped data. It is also possible to scrape user profile information, including following and followers.
 
@@ -68,8 +69,7 @@ optional arguments:
 
 ### To execute the script : 
 
-##todo:  remove max date/min date limitations
-todo: autorun
+todo: autorun on loop
 todo: discord web hook
 
 python scweet.py --words "fooji.info" --limit 5 --navig chrome --display_type Latest

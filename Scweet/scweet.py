@@ -25,25 +25,16 @@ def scrape(words=None, to_account=None, from_account=None, interval=5, navig="ch
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-
-
-
-    path = save_dir + "/output.csv" #Because we are checking against the existing .csv file to see if a fooji tweet has been shared, it's better to keep only one CSV file.
-
-    #write_header_to_csv(path, write_mode) #uncomment to write header (first line of .csv should be the header... TODO:  Make this not shitty)
+    path = save_dir + "/output.csv"
 
     num_logged_pages = 0
-
 
     with open(path, write_mode, newline='', encoding='utf-8') as f: 
         while num_logged_pages <= limit:
             scrolls = 0
             writer = csv.writer(f)
 
-
             log_search_page(driver=driver, words=words,
-                                # start_date=datetime.datetime.strftime(start_date, '%Y-%m-%d'),
-                                # end_date=datetime.datetime.strftime(end_date, '%Y-%m-%d'), 
                                 to_account=to_account,
                                 from_account=from_account, lang=lang, display_type=display_type, hashtag=None)
 
@@ -54,7 +45,6 @@ def scrape(words=None, to_account=None, from_account=None, interval=5, navig="ch
 
             print("Scraping for tweets...")
 
-            # start scrolling and get tweets
             tweets_parsed = 0
 
             driver, data, writer, tweet_ids, scrolling, tweets_parsed, scrolls, last_position = \

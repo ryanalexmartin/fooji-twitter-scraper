@@ -178,7 +178,7 @@ def get_tweet_data(card):
         return
 
     try:
-        fooji_link = re.findall('((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|info){1}(?:\/[a-zA-Z0-9]{1,})*)', text)
+        fooji_link = re.findall('((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|info){1}(?:\/[a-zA-Z0-9]{1,})*)', text)[0]
     except:
         return
 
@@ -266,7 +266,7 @@ def log_search_page(driver, lang, display_type, words, to_account, from_account,
     try:
         driver.find_element_by_link_text(display_type).click()
     except:
-        print("Latest Button doesnt exist.")
+        print("\'Latest\' button could not be found.")
 
 
 # def log_search_page(driver, lang, display_type, words, to_account, from_account):
@@ -302,7 +302,7 @@ def log_search_page(driver, lang, display_type, words, to_account, from_account,
 
 
 def get_last_date_from_csv(path):
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, header=[0])
     df.columns= ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
                   'Image link', 'Tweet URL', 'Hashtags', 'fooji_link']
     return datetime.datetime.strftime(max(pd.to_datetime(df["Timestamp"])), '%Y-%m-%dT%H:%M:%S.000Z')
@@ -330,8 +330,8 @@ def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, lim
 
     path = "outputs/output.csv"
 
-    #read csv file and add all rows to an array
-    df = pd.read_csv(path)
+    #read csv file and add all rows to a datafield
+    df = pd.read_csv(path, header=[0])
 
 
     while scrolling and tweet_parsed < limit:
@@ -348,9 +348,13 @@ def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, lim
                     data.append(tweet)
                     last_date = str(tweet[2])
                     print("Tweet made at: " + str(last_date) + " is found.")
-                    if(tweet[:-1] not in df.values):
+                    print(tweet[-1])
+                    if(tweet[-1] not in df[df.columns[-1]].values): #If the link has not yet been found
                         ##TODO:  send to DISCORD right here!
-                        writer.writerows([tweet])
+                        print("wrote row!")
+                        print(tweet[-1][0])
+                        print(df[df.columns[-1]].values)
+                        writer.writerow(tweet)
                     tweet_parsed += 1
                     if tweet_parsed >= limit:
                         break
