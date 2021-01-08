@@ -2,9 +2,9 @@ from io import StringIO, BytesIO
 import os
 import re
 from time import sleep
-import chromedriver_autoinstaller
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
+import chromedriver_autoinstaller 
 from selenium.webdriver.chrome.options import Options
 import datetime
 import pandas as pd
@@ -15,9 +15,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+
 import const
 #import requests
 #import zipfile
+import config
+import asyncio
+import discord
 
 #current_dir = pathlib.Path(__file__).parent.absolute()
 
@@ -325,61 +329,58 @@ def log_in(driver, timeout=10):
 	password_el.send_keys(Keys.RETURN)
 
 
-def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position):
-    """ scrolling function """
+# async def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position):
+#     path = "outputs/output.csv"
 
-    path = "outputs/output.csv"
-
-    #read csv file and add all rows to a datafield
-    df = pd.read_csv(path, header=[0])
+#     #read csv file and add all rows to a datafield
+#     df = pd.read_csv(path, header=[0])
 
 
-    while scrolling and tweet_parsed < limit:
-        # get the card of tweets
-        page_cards = driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
-        for card in page_cards:
-            tweet = get_tweet_data(card)
-            if tweet:
-                # print(tweet)
-                # check if the tweet is unique by grabbing URL
-                tweet_id = ''.join(tweet[len(tweet) - 2])
-                if tweet_id not in tweet_ids:
-                    tweet_ids.add(tweet_id)
-                    data.append(tweet)
-                    last_date = str(tweet[2])
-                    print("Tweet made at: " + str(last_date) + " is found.")
-                    print(tweet[-1])
-                    if(tweet[-1] not in df[df.columns[-1]].values): #If the link has not yet been found
-                        ##TODO:  send to DISCORD right here!
-                        print("wrote row!")
-                        print(tweet[-1][0])
-                        print(df[df.columns[-1]].values)
-                        writer.writerow(tweet)
-                    tweet_parsed += 1
-                    if tweet_parsed >= limit:
-                        break
-        scroll_attempt = 0
-        while True and tweet_parsed < limit:
-            # check scroll position
-            print("scroll", scroll)
-            # sleep(1)
-            driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-            scroll += 1
-            sleep(1)
-            curr_position = driver.execute_script("return window.pageYOffset;")
-            if last_position == curr_position:
-                scroll_attempt += 1
+#     while scrolling and tweet_parsed < limit:
+#         # get the card of tweets
+#         page_cards = driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
+#         for card in page_cards:
+#             tweet = get_tweet_data(card)
+#             if tweet:
+#                 # print(tweet)
+#                 # check if the tweet is unique by grabbing URL
+#                 tweet_id = ''.join(tweet[len(tweet) - 2])
+#                 if tweet_id not in tweet_ids:
+#                     tweet_ids.add(tweet_id)
+#                     data.append(tweet)
+#                     last_date = str(tweet[2])
+#                     print("Tweet made at: " + str(last_date) + " is found.")
+#                     print(tweet[-1])
+#                     if(tweet[-1] not in df[df.columns[-1]].values): #If the link has not yet been found
+#                         ##TODO:  send to DISCORD right here!
+#                         message_relayer.relay_message_and_channel(config.channel_id, "A new fooji link was discovered.")
+#                         print("Writing new entry to output.csv and attempted to send Discord message to server...")
+#                         writer.writerow(tweet)
+#                     tweet_parsed += 1
+#                     if tweet_parsed >= limit:
+#                         break
+#         scroll_attempt = 0
+#         while True and tweet_parsed < limit:
+#             # check scroll position
+#             print("scroll", scroll)
+#             # sleep(1)
+#             driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+#             scroll += 1
+#             sleep(1)
+#             curr_position = driver.execute_script("return window.pageYOffset;")
+#             if last_position == curr_position:
+#                 scroll_attempt += 1
 
-                # end of scroll region
-                if scroll_attempt >= 2:
-                    scrolling = False
-                    break
-                else:
-                    sleep(1)  # attempt another scroll
-            else:
-                last_position = curr_position
-                break
-    return driver, data, writer, tweet_ids, scrolling, tweet_parsed, scroll, last_position
+#                 # end of scroll region
+#                 if scroll_attempt >= 2:
+#                     scrolling = False
+#                     break
+#                 else:
+#                     sleep(1)  # attempt another scroll
+#             else:
+#                 last_position = curr_position
+#                 break
+#     return driver, data, writer, tweet_ids, scrolling, tweet_parsed, scroll, last_position
 
 
 
