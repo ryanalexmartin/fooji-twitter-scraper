@@ -19,7 +19,9 @@ from time import sleep
 
 
 import config
-from utils import init_driver, get_last_date_from_csv, log_search_page
+import utils
+
+client = commands.Bot('!')
 
 def write_header_to_csv(path, write_mode):
     header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
@@ -39,7 +41,7 @@ async def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parse
         # get the card of tweets
         page_cards = driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
         for card in page_cards:
-            tweet = get_tweet_data(card)
+            tweet = utils.get_tweet_data(card)
             if tweet:
                 # print(tweet)
                 # check if the tweet is unique by grabbing URL
@@ -52,7 +54,9 @@ async def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parse
                     print(tweet[-1])
                     if(tweet[-1] not in df[df.columns[-1]].values): #If the link has not yet been found
                         ##TODO:  send to DISCORD right here!
-                        message_relayer.relay_message_and_channel(config.channel_id, "A new fooji link was discovered.")
+                        await client.wait_until_ready()
+                        channel = client.get_channel(796601973897035806)
+                        await channel.send('A new fooji link was discovered.')
                         print("Writing new entry to output.csv and attempted to send Discord message to server...")
                         writer.writerow(tweet)
                     tweet_parsed += 1
@@ -86,7 +90,7 @@ async def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parse
 async def scrape(words=None, to_account=None, from_account=None, interval=5, navig="chrome", lang="en",
           headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None):
 
-    driver = init_driver(navig, headless, proxy)
+    driver = utils.init_driver(navig, headless, proxy)
     data = []
 
     tweet_ids = set()
@@ -104,7 +108,7 @@ async def scrape(words=None, to_account=None, from_account=None, interval=5, nav
             scrolls = 0
             writer = csv.writer(f)
 
-            log_search_page(driver=driver, words=words,
+            utils.log_search_page(driver=driver, words=words,
                                 to_account=to_account,
                                 from_account=from_account, lang=lang, display_type=display_type, hashtag=None)
 
@@ -121,7 +125,6 @@ async def scrape(words=None, to_account=None, from_account=None, interval=5, nav
     driver.close()
     return data
 
-client = commands.Bot('!')
 
 @client.event
 async def on_ready():
@@ -134,7 +137,7 @@ async def scrape_fooji():
     words = "fooji"
     interval = 5
     navig = "chrome"
-    lang = None
+    lang = "en"
     headless = False
     limit = default=float("inf")
     display_type = "Latest"
@@ -158,17 +161,9 @@ class ScrapeCog(commands.Cog):
     async def printer(self):
         await scrape_fooji()
 
-class MessageCog(commands.Cog):
-    def __init__(self, client):
-        self.client = client
-
-    @commands.command()
-    async def send_message_to_channel(channel_id, message):
-        await client.send(channel_id, message)
 
 
 client.add_cog(ScrapeCog(client))
-client.add_cog(MessageCog(client))
 client.run(config.auth_token)
 
 
