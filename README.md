@@ -2,15 +2,16 @@
 # by insom#4211 and Zoopzse#9800
 
 ## To do:
-* Servlet should run in a loop (Look at how Discord bots use event loops)
-* Add Discord hook functionality (and relevant config files for customers to modify)
-* Update this readme to make it easier to onboard customers
-* Figure out cloud instance strategy
-* Update help message to match the below.
-* Build out command line functionality to make it easier for the customer.
-* Probably want to limit search dates to 2 days ago, max.
+[*](Needs Polish) Servlet should run in a loop (Look at how Discord bots use event loops)
+[*](Needs polish) Add Discord hook functionality (and relevant config files for customers to modify)
+[ ] Update this readme to make it easier to onboard customers
+[ ] Figure out cloud instance strategy
+[ ] Update help message to match the below cli args.
+[ ] Build out command line functionality to make it easier for the customer.
+[ ] Probably want to limit search dates to 2 days ago, max.
+[ ] *important*: Since we are running on 30sec loops from the Discord bot API, we need to kill the browser session at the end of each thread... and wrap the thread up.
 
-* Should handle links that look like: (These are not retweet giveaways, but actual straight-up giveaways)
+[ ] Should handle links that look like: (These are not retweet giveaways, but actual straight-up giveaways)
       https://jordanwnz.fooji.com/
 
 

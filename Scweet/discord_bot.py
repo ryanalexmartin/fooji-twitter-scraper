@@ -1,5 +1,6 @@
 # This bot handles Discord logins and config issues, and runs in the background while the scraper runs in a loop.
 
+from utils import init_driver
 import asyncio
 import discord
 import os
@@ -16,6 +17,13 @@ import pandas as pd
 import threading
 import asyncio
 from time import sleep
+
+
+from signal import signal, SIGINT
+from sys import exit
+
+
+
 
 
 import config
@@ -56,7 +64,7 @@ async def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parse
                         ##TODO:  send to DISCORD right here!
                         await client.wait_until_ready()
                         channel = client.get_channel(796601973897035806)
-                        await channel.send('A new fooji link was discovered.')
+                        await channel.send('A new fooji link was discovered: ' + tweet[-1])
                         print("Writing new entry to output.csv and attempted to send Discord message to server...")
                         writer.writerow(tweet)
                     tweet_parsed += 1
@@ -134,7 +142,7 @@ async def on_ready():
     print('------')
 
 async def scrape_fooji():
-    words = "fooji"
+    words = "fooji.info//fooji.com"
     interval = 5
     navig = "chrome"
     lang = "en"
@@ -157,7 +165,7 @@ class ScrapeCog(commands.Cog):
     async def printfunc(self):
         print("coroutine just ran") #This never runs.
 
-    @tasks.loop(seconds=60.0)
+    @tasks.loop(seconds=10.0)
     async def printer(self):
         await scrape_fooji()
 
@@ -166,7 +174,15 @@ class ScrapeCog(commands.Cog):
 client.add_cog(ScrapeCog(client))
 client.run(config.auth_token)
 
+def handler(signal_received, frame):
+    # Handle any cleanup here
+    print('SIGINT or CTRL-C detected. Exiting gracefully')
+    # Should take reference to driver from utils here.
+    exit(0)
 
-        
-### end of day notes:
-# I was able to get everything running in a loop, but when trying to 
+    
+if __name__ == '__main__':
+    # Tell Python to run the handler() function when SIGINT is recieved
+    signal(SIGINT, handler)
+
+
