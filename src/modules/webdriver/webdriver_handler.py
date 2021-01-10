@@ -15,6 +15,7 @@ class WebdriverHandler:
             # Read CSV file and add all rows to a DataFrame
 
     def read_csv_file(self):
+        
         return pd.read_csv(self.path, header=[0])
         
 

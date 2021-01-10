@@ -18,35 +18,35 @@ import argparse
 import threading
 import asyncio
 from time import sleep
-from signal import signal, SIGINT
-from sys import exit
+import csv
 
-
-class DiscordBotContainer:
+class DiscordBotContainer():
     path = "outputs/output.csv"
     def __init__(self):
         self.csv_handler = CsvHandler()
-        self.bot = commands.Bot(command_prefix='!')
-        self.bot.add_cog(ScrapeCog(self))
-        self.bot.run(auth_token)
         self.driver = WebdriverHandler(discord_bot=self.bot, csv_handler=self.csv_handler)
         self.tweet_ids = set()
         self.data = []
+        self.is_scrolling = False
+        self.bot = commands.Bot(command_prefix='!')
+        self.bot.add_cog(ScrapeCog(self.bot))
+        self.bot.run(auth_token)
+        print("Starting discord bot: ", self.bot)
 
-    def start(self):
-        print("Started discord bot: ", self.bot)
-        self.scrape()
+
+    async def on_ready(self):
+        print('Logged on as {0}!'.format(self.bot))
 
     async def scrape(self, words=None, to_account=None, from_account=None, interval=5, navig="chrome", lang="en", \
                     headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None):
-        if not os.path.exists("outputs"):
-            os.makedirs("outputs")
-        
+                    
+       
         write_mode = 'a'
         num_logged_pages = 0
 
         with open(self.path, write_mode, newline='', encoding='utf-8') as f: 
-            while num_logged_pages <= limit:
+            self.is_scrolling = True
+            while self.is_scrolling and num_logged_pages <= limit:
                 scrolls = 0
                 writer = csv.writer(f)
 
@@ -56,21 +56,16 @@ class DiscordBotContainer:
                 num_logged_pages += 1
                 
                 last_position = self.driver.execute_script("return window.pageYOffset;")
-                scrolling = True
+                self.is_scrolling = True
 
                 print("Scraping for tweets...")
 
                 tweets_parsed = 0
-                self.driver, self.data, writer, self.tweet_ids, scrolling, tweets_parsed, scrolls, last_position = \
-                    await self.driver.scroll_through_twitter_feed(self.driver, self.data, writer, self.tweet_ids, scrolling, tweets_parsed, limit, scrolls, last_position)    
-        self.driver.close()
-        return self.data
-    
-def handler(signal_received, frame):
-    # Handle any cleanup here
-    print('SIGINT or CTRL-C detected. Exiting gracefully')
-    # Should take reference to driver from utils here.
-    exit(0)
 
-    
+                self.driver, self.data, writer, self.tweet_ids, self.is_scrolling, tweets_parsed, scrolls, last_position = \
+                    await self.driver.scroll_through_twitter_feed(self.driver, self.data, writer, self.tweet_ids, self.is_scrolling, tweets_parsed, limit, scrolls, last_position)    
+
+        self.driver.close()
+        
+        return self.data
 
