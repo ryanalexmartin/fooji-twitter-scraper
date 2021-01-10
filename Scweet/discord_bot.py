@@ -46,9 +46,11 @@ async def keep_scrolling(driver, data, writer, tweet_ids, scrolling, tweet_parse
 
 
     while scrolling and tweet_parsed < limit:
-        # get the card of tweets
+        # get the card of all tweets visible in the DOM
         page_cards = driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
         for card in page_cards:
+
+
             tweet = utils.get_tweet_data(card)
             if tweet:
                 # print(tweet)

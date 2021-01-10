@@ -3,7 +3,7 @@ import setuptools
 
 setup(
   name = 'Scweet',
-  packages = ['Scweet'],
+  packages = ['main'],
   version = '0.2.1',
   license='MIT',
   description = 'Tool for scraping Tweets',
