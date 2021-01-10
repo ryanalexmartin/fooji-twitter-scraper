@@ -130,7 +130,6 @@ def get_tweet_data(card):
 
     try:
         fooji_link = re.findall(r'((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|info){1}(?:\/[a-zA-Z0-9]{1,})*)', text)[0]
-        re.compile(r"^https?://www\.(\w+)?(facebook|twitter)\.com/[\w-]+")
     except:
         return
 

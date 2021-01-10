@@ -1,21 +1,25 @@
 from .webdriver_utils import init_driver, get_tweet_data
 import pandas as pd
+import csv
 from time import sleep
 
 
 class WebdriverHandler:
     path = "outputs/output.csv"
 
-    def __init__(self, discord_bot, csv_handler):
-        self.driver = init_driver()                  #Unique to each instance of WebdriverHandler() (should not be more than one instance)  
+    def __init__(self, discord_bot, csv_handler, headless):
+        self.driver = init_driver(headless=headless)                  #Unique to each instance of WebdriverHandler() (should not be more than one instance)  
         self.csv_tweets_df = self.read_csv_file()
         self.csv_handler = csv_handler
-
+        self.data = []
+        self.tweet_ids = set()
+        self.write_mode = 'a'
+        self.path = "outputs/output.csv"
+        self.is_scrolling = False
         self.discord_bot = discord_bot
             # Read CSV file and add all rows to a DataFrame
 
     def read_csv_file(self):
-        
         return pd.read_csv(self.path, header=[0])
         
 
@@ -26,12 +30,38 @@ class WebdriverHandler:
     def get_csv_fooji_links(self):
         return self.csv_tweets_df[self.csv_tweets_df.columns[-1]].values
 
-    async def post_tweet_to_discord(self, tweet):
-        await self.discord_bot.wait_until_ready()
+    def post_tweet_to_discord(self, tweet):
         channel = self.discord_bot.get_channel(796601973897035806)
-        await channel.send('A new fooji link was discovered: ' + tweet[-1])
+        channel.send('A new fooji link was discovered: ' + tweet[-1])
+
+    def scrape(self, words=None, to_account=None, from_account=None, interval=5, navig="chrome", lang="en", \
+                    headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None):
+        num_logged_pages = 0
+
+        #with open(self.path, self.write_mode, newline='', encoding='utf-8') as f: 
+        self.is_scrolling = True
+        while self.is_scrolling and num_logged_pages <= limit:
+            scroll_count = 0
+
+            self.get_search_page(words=words, to_account=to_account, \
+                from_account=from_account, lang=lang, display_type=display_type, hashtag=None)
+
+            num_logged_pages += 1
+            
+            last_position = self.driver.execute_script("return window.pageYOffset;")
+            self.is_scrolling = True
+
+            print("Scraping for tweets...")
+
+            tweets_parsed = 0
+
+            # self.driver, self.data, writer, self.tweet_ids, self.is_scrolling, tweets_parsed, scroll_count, last_position = \  #This syntax is very unclear, so I'd rather just call the method.
+            self.scroll_through_twitter_feed(self.data, self.csv_handler, self.tweet_ids, self.is_scrolling, tweets_parsed, limit, scroll_count, last_position)    
+
+        self.driver.close()
+        return self.data
     
-    async def scroll_through_twitter_feed(self, data, writer, tweet_urls, scrolling, tweets_parsed, limit, scroll_count, last_position):
+    def scroll_through_twitter_feed(self, data, writer, tweet_urls, scrolling, tweets_parsed, limit, scroll_count, last_position):
         while tweets_parsed < limit:
 
             tweet_cards = self.get_all_tweet_cards_on_page()
@@ -51,7 +81,12 @@ class WebdriverHandler:
                         if(fooji_link not in csv_fooji_links): #If the link has not yet been found
                             self.post_tweet_to_discord(tweet)
                             print("Writing new entry to output.csv and attempted to send Discord message to server...")
-                            writer.writerow(tweet)
+                            print("Tweet that was found: \n")
+                            print(tweet)
+                            print("\n")
+                            self.csv_handler.add_tweet_to_csv(tweet)
+                            self.csv_tweets_df = self.read_csv_file()
+
 
                         tweets_parsed += 1
                         if tweets_parsed >= limit:

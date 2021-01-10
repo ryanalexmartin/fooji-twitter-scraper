@@ -7,9 +7,20 @@ import datetime
 
 class CsvHandler:
     def __init__(self):
+        self.path = 'outputs/output.csv'
+        self.write_mode = 'a' 
+        self.f = open(self.path, self.write_mode, newline='', encoding='utf-8')
+        self.writer = csv.writer(self.f)
         if not os.path.exists("outputs"):
             os.makedirs('outputs')
-        self.write_header_to_csv('outputs/output.csv', 'w')
+        #self.write_header_to_csv('outputs/output.csv', 'w')
+
+    def add_tweet_to_csv(self, tweet):
+        mode_append = 'a'
+        with open(self.path, mode_append, newline='', encoding='utf-8') as f: 
+            writer = csv.writer(f)
+            writer.writerow(tweet)
+
 
     def write_header_to_csv(self, path, write_mode):
         header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
