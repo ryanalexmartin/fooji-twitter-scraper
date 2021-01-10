@@ -239,7 +239,7 @@ def init_driver(navig="chrome", headless=True, proxy=None):
         return driver
 
 
-def log_search_page(driver, lang, display_type, words, to_account, from_account, hashtag):
+def get_search_page(driver, lang, display_type, words, to_account, from_account, hashtag):
     """ Search for this query between start_date and end_date"""
 
     # req='%20OR%20'.join(words)

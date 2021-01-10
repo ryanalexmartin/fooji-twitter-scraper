@@ -116,7 +116,7 @@ async def scrape(words=None, to_account=None, from_account=None, interval=5, nav
             scrolls = 0
             writer = csv.writer(f)
 
-            utils.log_search_page(driver=driver, words=words,
+            utils.get_search_page(driver=driver, words=words,
                                 to_account=to_account,
                                 from_account=from_account, lang=lang, display_type=display_type, hashtag=None)
 
