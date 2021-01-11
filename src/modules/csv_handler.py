@@ -5,6 +5,7 @@ import csv
 import os
 import datetime
 
+
 class CsvHandler:
     def __init__(self):
         self.path = 'outputs/output.csv'

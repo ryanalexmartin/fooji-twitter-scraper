@@ -2,12 +2,20 @@ from .webdriver_utils import init_driver, get_tweet_data
 import pandas as pd
 import csv
 from time import sleep
+import asyncio
+from modules.config import channel_id
 
+async def send_tweet_to_discord(bot, tweet):
+    #print('TRYING TO POST TO DISCORD.')
+    #await bot.wait_until_ready()
+    channel = bot.get_channel(channel_id)
+    await channel.send('A new fooji link was discovered: ' + tweet[-1])
 
 class WebdriverHandler:
     path = "outputs/output.csv"
 
-    def __init__(self, discord_bot, csv_handler, headless):
+
+    def __init__(self, discord_bot, csv_handler, headless, loop):
         self.driver = init_driver(headless=headless)                  #Unique to each instance of WebdriverHandler() (should not be more than one instance)  
         self.csv_tweets_df = self.read_csv_file()
         self.csv_handler = csv_handler
@@ -17,6 +25,7 @@ class WebdriverHandler:
         self.path = "outputs/output.csv"
         self.is_scrolling = False
         self.discord_bot = discord_bot
+        self.loop = loop
             # Read CSV file and add all rows to a DataFrame
 
     def read_csv_file(self):
@@ -30,9 +39,9 @@ class WebdriverHandler:
     def get_csv_fooji_links(self):
         return self.csv_tweets_df[self.csv_tweets_df.columns[-1]].values
 
-    def post_tweet_to_discord(self, tweet):
-        channel = self.discord_bot.get_channel(796601973897035806)
-        channel.send('A new fooji link was discovered: ' + tweet[-1])
+    # async def post_tweet_to_discord(self, tweet):
+    #     channel = self.discord_bot.get_channel(796601973897035806)
+    #     await channel.send('A new fooji link was discovered: ' + tweet[-1])
 
     def scrape(self, words=None, to_account=None, from_account=None, interval=5, navig="chrome", lang="en", \
                     headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None):
@@ -79,7 +88,7 @@ class WebdriverHandler:
                         csv_fooji_links = self.get_csv_fooji_links()
                         
                         if(fooji_link not in csv_fooji_links): #If the link has not yet been found
-                            self.post_tweet_to_discord(tweet)
+                            self.discord_bot.loop.create_task(send_tweet_to_discord(self.discord_bot, tweet))
                             print("Writing new entry to output.csv and attempted to send Discord message to server...")
                             print("Tweet that was found: \n")
                             print(tweet)
