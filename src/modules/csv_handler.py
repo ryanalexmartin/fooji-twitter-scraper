@@ -30,6 +30,9 @@ class CsvHandler:
             writer = csv.writer(f)
             writer.writerow(header)
 
+    def read_csv_file(self):
+        return pd.read_csv(self.path, header=[0])
+
     def get_last_date_from_csv(self, path):
         df = pd.read_csv(path, header=[0])
         df.columns= ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Emojis', 'Comments', 'Likes', 'Retweets',
