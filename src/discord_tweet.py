@@ -1,8 +1,8 @@
 import tweepy
 from modules.csv_handler import CsvHandler
-import pandas as p
-import json
-
+import pandas as pd
+import csv
+from webhook_send_tweet import send_tweet_to_discord_as_webhook
 
 
 auth = tweepy.OAuthHandler('eHtXXHzhyXH7s8AJpLr1c08bf', 'MByI3bcuHR8bWc9Dh18e5ojKOtzjRp6zKCGEyq6CdmoKVUcO4L')
@@ -15,13 +15,26 @@ except tweepy.TweepError:
 api = tweepy.API(auth)
 # api.update_status('tweepy + oauth!')
 
-csv_handler = CsvHandler()
+path = 'outputs/output.csv'
 
-existing_tweets = csv_handler.read_csv_file()
+
+def read_csv_file():
+        return pd.read_csv(path, header=[0])
+
+def add_tweet_to_csv(tweet):
+    mode_append = 'a'
+    with open(path, mode_append, newline='', encoding='utf-8') as f: 
+        writer = csv.writer(f)
+        writer.writerow(tweet)
+
+existing_tweets = read_csv_file() # a LOT of wasted compute cycles... should extend init method
+print('contents of outputs/output.csv will be checked against before sending Discord messages.')
+print(existing_tweets)
+
 
 class StreamListener(tweepy.StreamListener):
     def on_status(self, status):
-        
+        existing_tweets = read_csv_file() # a LOT of wasted compute cycles... should extend init method
         hashtags = status.entities['hashtags']
         hashtags_values = [d['text'] for d in hashtags]
 
@@ -32,18 +45,30 @@ class StreamListener(tweepy.StreamListener):
             status.text, f'https://twitter.com/{status.user.screen_name}/status/{status.id}', \
             hashtags_values, urls_values]
 
-        if status.text not in existing_tweets:
-            print('\n')
-            print(tweet_info)
-            print('\n')
-            print('\n')
-            # csv_handler.add_tweet_to_csv(status)thum
+        #logic for our own filtering purposes
+
+        print(urls_values)
+
+        if urls_values:
+            if urls_values[0]:
+                if urls_values[0] not in existing_tweets:
+                    print('\n')
+                    print(tweet_info)
+                    print('\n')
+                    print('\n')
+                    add_tweet_to_csv(tweet_info)
+                    send_tweet_to_discord_as_webhook(tweet_info)
+        else:
+            print('Found tweet and ignored it as URL was found in .csv file.')
 
     def on_error(self, status_code):
         if status_code == 420:
             return False
         
+filters = 'fooji'
 
+print('Listening for tweets containing: \"' + filters + '\"...')
 stream_listener = StreamListener()
 stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
-stream.filter(track=["fooji.info"])
+stream.filter(track=[filters], encoding='utf8')
+

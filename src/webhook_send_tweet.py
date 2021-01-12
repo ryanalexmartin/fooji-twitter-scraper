@@ -1,17 +1,12 @@
 import requests
 import urllib
 
-tweet = ['IphonesRock', '@rosegold098765', '2020-11-13T22:42:20.000Z', '@strongblacklead\n Tweet #jinglejangle  + #promo to enter our special treat giveaway. No Purchase Necessary. Must be 18+. Void Where Prohibited. For official rules@ http://fooji.info/JingleJangle ', '', '1', '', '', '', 'https://twitter.com/rosegold098765/status/1327381310990548992', ['jinglejangle', 'promo'], 'http://fooji.info/JingleJangle']
-
-space_replace = "%20"
-hashtag_replace = "%23"
-
 def send_tweet_to_discord_as_webhook(tweet):
     url = "https://discord.com/api/webhooks/798297681289150546/pkIV_Y7XyO6oUX4Y_Baa9xPNyAuXVsxXLf8BsSgQZIWyl5OGkxXEgwEUrSD7t_RW5Clv" #webhook url, from here: https://i.imgur.com/f9XnAew.png
 
     #for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
 
-    r = requests.get(tweet[-1]) #should only run this if fooji link is .info
+    r = requests.get(format_url(tweet[-1][0])) #should only run this if fooji link is .info
     fooji_redirected_url = r.url.strip('/#rules')
     original_tweet_url = tweet[len(tweet) -3]
     generated_tweet = '#' + ' #'.join(tweet[len(tweet) -2])
@@ -32,7 +27,7 @@ def send_tweet_to_discord_as_webhook(tweet):
     data["embeds"] = [
         {
             "description" : tweet[3],
-            "title" : tweet[0]
+            "title" : tweet[0] #author of the tweet
         }
     ]
 
@@ -45,4 +40,13 @@ def send_tweet_to_discord_as_webhook(tweet):
     else:
         print("Payload delivered successfully, code {}.".format(result.status_code))
 
-send_tweet_to_discord_as_webhook(tweet)
+def format_url(url):
+    url = url.lower()
+    p = urllib.parse.urlparse(url, 'http')
+    netloc = p.netloc or p.path
+    path = p.path if p.netloc else ''
+    if not netloc.startswith('www.'):
+        netloc = 'www.' + netloc
+
+    p = urllib.parse.ParseResult('http', netloc, path, *p[3:])
+    return p.geturl()
