@@ -65,7 +65,7 @@ class StreamListener(tweepy.StreamListener):
         if status_code == 420:
             return False
         
-filters = 'trump'
+filters = 'fooji'
 
 print('Listening for tweets containing: \"' + filters + '\"...')
 stream_listener = StreamListener()
