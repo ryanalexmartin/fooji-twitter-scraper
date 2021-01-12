@@ -2,14 +2,37 @@ from .webdriver_utils import init_driver, get_tweet_data
 import pandas as pd
 import csv
 from time import sleep
+import requests
 import asyncio
-from modules.config import channel_id
 
-async def send_tweet_to_discord(bot, tweet):
-    #print('TRYING TO POST TO DISCORD.')
-    #await bot.wait_until_ready()
-    channel = bot.get_channel(channel_id)
-    await channel.send('A new fooji link was discovered: ' + tweet[-1])
+
+def send_tweet_to_discord_as_webhook(tweet):
+    url = "https://discord.com/api/webhooks/798297681289150546/pkIV_Y7XyO6oUX4Y_Baa9xPNyAuXVsxXLf8BsSgQZIWyl5OGkxXEgwEUrSD7t_RW5Clv" #webhook url, from here: https://i.imgur.com/f9XnAew.png
+
+    #for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
+    data = {
+        "content" : "New fooji detected!",
+        "username" : "Fooji Tracker"
+    }
+
+    #leave this out if you dont want an embed
+    #for all params, see https://discordapp.com/developers/docs/resources/channel#embed-object
+    data["embeds"] = [
+        {
+            "description" : tweet[3],
+            "title" : tweet[0]
+        }
+    ]
+
+    result = requests.post(url, json = data)
+
+    try:
+        result.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(err)
+    else:
+        print("Payload delivered successfully, code {}.".format(result.status_code))
+
 
 class WebdriverHandler:
     path = "outputs/output.csv"
@@ -88,7 +111,7 @@ class WebdriverHandler:
                         csv_fooji_links = self.get_csv_fooji_links()
                         
                         if(fooji_link not in csv_fooji_links): #If the link has not yet been found
-                            self.discord_bot.loop.create_task(send_tweet_to_discord(self.discord_bot, tweet))
+                            send_tweet_to_discord_as_webhook(tweet)
                             print("Writing new entry to output.csv and attempted to send Discord message to server...")
                             print("Tweet that was found: \n")
                             print(tweet)

@@ -27,6 +27,7 @@ class ScrapeCog(commands.Cog):
     
     @tasks.loop(seconds=10.0) #scrape every 10 seconds.
     async def scraper(self):
+        
         await self.bot.loop.run_in_executor(None, self.blocking_scrape(self.loop))
         
     @scraper.before_loop
