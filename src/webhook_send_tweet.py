@@ -2,7 +2,8 @@ import requests
 import urllib
 
 def send_tweet_to_discord_as_webhook(tweet):
-    url = "https://discord.com/api/webhooks/798297681289150546/pkIV_Y7XyO6oUX4Y_Baa9xPNyAuXVsxXLf8BsSgQZIWyl5OGkxXEgwEUrSD7t_RW5Clv" #webhook url, from here: https://i.imgur.com/f9XnAew.png
+    main_server_url = "https://discord.com/api/webhooks/798417075839565835/yQ4IBosSl_muATBGKrm4YQzSQIsS4nC7h_rTFSY5Sa-nhh-a1gMAdNFIw-pNmak3DMXH" #webhook url, from here: https://i.imgur.com/f9XnAew.png
+
 
     #for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
 
@@ -19,7 +20,6 @@ def send_tweet_to_discord_as_webhook(tweet):
         \nLink to Fooji Site: {fooji_redirected_url}\
         \nBypass Link Bypass Link (just click before ven getting reply, does not work for all foojis): {fooji_redirected_url}/#start\
         \nSkip Questions Bypass link (using this link will let you skip all the questions when re-entering the contest Foojis): {fooji_redirected_url}/#activate-workflow-1",
-        "username" : "Fooji Tracker"
     }
 
     #leave this out if you dont want an embed
@@ -31,7 +31,7 @@ def send_tweet_to_discord_as_webhook(tweet):
         }
     ]
 
-    result = requests.post(url, json = data)
+    result = requests.post(main_server_url, json = data)
 
     try:
         result.raise_for_status()
